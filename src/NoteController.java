@@ -6,7 +6,6 @@
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.LineNumberReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,31 +33,25 @@ import javax.swing.text.StyledDocument;
  */
 public class NoteController {
 
-    private NoteGUI view;
+    private final NoteGUI view;
 
-    private List<Integer> list = new ArrayList<>();
+    private final List<Integer> list = new ArrayList<>();
 
     public NoteController(NoteGUI view) {
         this.view = view;
 
-        this.view.getReadBtn().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    process();
-                } catch (BadLocationException ex) {
-                    Logger.getLogger(NoteController.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(NoteController.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        this.view.getReadBtn().addActionListener((ActionEvent e) -> {
+            try {
+                process();
+            } catch (BadLocationException ex) {
+                Logger.getLogger(NoteController.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(NoteController.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
 
-        this.view.getSaveBtn().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                save();
-            }
+        this.view.getSaveBtn().addActionListener((ActionEvent e) -> {
+            save();
         });
     }
 
@@ -99,8 +92,10 @@ public class NoteController {
         if (JFileChooser.APPROVE_OPTION == loadFile.showOpenDialog(view)) {
             PushbackReader reader = new PushbackReader(new InputStreamReader(new FileInputStream(loadFile.getSelectedFile())));
             PushbackInputStream lineRead = new PushbackInputStream(new FileInputStream(loadFile.getSelectedFile()));
-
-            char[] words = new char[(int) loadFile.getSelectedFile().length()];
+            
+            double size = loadFile.getSelectedFile().length();
+            char[] words = new char[(int) size];
+            
 
             try {
                 reader.read(words);
@@ -115,14 +110,14 @@ public class NoteController {
                 if ((data = new String(words)) != null) {
                     String[] wordlist = data.split("\\s+");
 
-                    byte[] c = new byte[1024];
+                    byte[] c = new byte[(byte)size];
                     int readChars = 0;
                     boolean empty = true;
                     while ((readChars = lineRead.read(c)) != -1) {
                         empty = false;
                         for (int i = 0; i < readChars; ++i) {
-                            if (c[i] == '\n') {
-                                ++count;
+                            if (c[i] == '\n') { 
+                               ++count;
                             }
                         }
                     }
@@ -133,7 +128,8 @@ public class NoteController {
                     doc.insertString(doc.getLength(), "" + data + "\n", null);
 
                 }
-
+                
+                lineRead.close();
                 JOptionPane.showMessageDialog(null, "File Berhasil dibaca." + "\n"
                         + "Jumlah baris = " + count + "\n"
                         + "Jumlah kata = " + characterCount + "\n"
